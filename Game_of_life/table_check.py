@@ -2,6 +2,7 @@ class Tablecheck:
     def __init__(self):
         self._grid = [['A','B','C'] ,
                       ['D','E','F'] ,
+                      ['D','E','F'] ,
                       ['G','H','I'] ,
                       ['J','K','L']]
                       
