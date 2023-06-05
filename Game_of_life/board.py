@@ -5,7 +5,7 @@ class Board:
     def __init__(self, rows, colums):
         self.rows = rows
         self.columns = colums
-        self.grid = [[Cell() for column_cells in range(self._columns)] for row_cells in range(self._rows)]
+        self._grid = [[Cell() for column_cells in range(self._columns)] for row_cells in range(self._rows)]
 
         self._gererate_board()
 
@@ -24,6 +24,69 @@ class Board:
                 chance_number = randint(0, 2)
                 if chance_number == 1:
                     column.set_alive()
+
+    def check_neighbour(self, check_row, check_columm) -> list[Cell] :
+        search_min = -1
+        search_max = 2
+
+        neighbour_list = []
+        for row in range(search_min, search_max):
+            for column in range(search_min, search_max):
+                neighbour_row = check_row + row
+                neighbour_column = check_columm + column
+
+                valid_neighbour = True
+
+                if neighbour_row == check_row and neighbour_column == check_columm:
+                    valid_neighbour = False
+
+                if neighbour_row < 0 or neighbour_row >= self._rows:
+                    valid_neighbour = False
+
+                if neighbour_column < 0 or neighbour_column >= self._column:
+                    valid_neighbour = False
+        
+                if valid_neighbour:
+                    neighbour_list.append(self._grid[neighbour_row][neighbour_column])
+        return neighbour_list
+
+    def update_board(self):
+        print('updating board')
+
+        goes_alive = []
+        gets_killed = []
+
+        for row in range(len(self._grid)):
+            for column in range(len(self._grid[row])):
+
+                check_neighbour = self.check_neighbour(row, column)
+
+                living_neighbours_count = []
+
+                for neighbour_cell in check_neighbour:
+                    if neighbour_cell.is_alive():
+                        living_neighbours_count.append(neighbour_cell)
+                
+                cell_object = self._grid[row][column]
+                status_main_cell = cell_object.is_alive()
+
+                if status_main_cell == True:
+                    if len(living_neighbours_count) < 2 or len(living_neighbours_count) > 3:
+                        gets_killed.append(cell_object)
+
+                    if len(living_neighbours_count) == 3 or len(living_neighbours_count) == 2:
+                        goes_alive.append(cell_object)
+                
+                else:
+                    if len(living_neighbours_count) == 3:
+                        goes_alive.append(cell_object)
+        
+
+        for cell_items in goes_alive:
+            cell_items.set_alive()
+
+        for cell_items in gets_killed:
+            cell_items.set_dead()
 
 
 # #initial generation based on randomness.
