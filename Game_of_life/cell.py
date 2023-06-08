@@ -15,12 +15,3 @@ class Cell:
         if self.is_alive():
             return 'O'
         return '*'
-
-# #set status to dead
-# def set_dead(self):
-# #set status to alive
-# def set_alive(self):
-# #is the cell alive?
-# def is_alive(self):
-# #what the board should print.
-# def get_print_character(self):
