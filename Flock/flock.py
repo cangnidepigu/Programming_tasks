@@ -14,6 +14,7 @@ WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
+ORANGE = (255, 165, 0)
 
 # Flocking parameters
 NUM_BOIDS = 100
@@ -23,6 +24,7 @@ BOID_FORCE = 0.05
 BOID_ALIGNMENT_RADIUS = 50
 BOID_COHESION_RADIUS = 50
 BOID_SEPARATION_RADIUS = 25
+OBSTACLE_SIZE = 25
 
 class Boid(pygame.sprite.Sprite):
     def __init__(self):
@@ -33,13 +35,11 @@ class Boid(pygame.sprite.Sprite):
         self.velocity = pygame.Vector2(random.uniform(-1, 1), random.uniform(-1, 1)).normalize()
         self.position = pygame.Vector2(random.randint(0, WIDTH), random.randint(0, HEIGHT))
 
-    def update(self, boids):
+    def update(self, boids, obstacles):
         alignment = pygame.Vector2(0, 0)
         cohesion = pygame.Vector2(0, 0)
         separation = pygame.Vector2(0, 0)
         total = 0
-
-        
 
         for boid in boids:
             if boid != self:
@@ -57,7 +57,17 @@ class Boid(pygame.sprite.Sprite):
                     diff = self.position - boid.position
                     diff /= distance
                     separation += diff
-                    total += 1
+                    total += 1   
+        
+        # Calculate influence of objects on boids
+        for obstacle in obstacles:
+            distance = boid.position.distance_to(obstacle.rect.center)
+            
+            if distance < BOID_SIZE*3 + OBSTACLE_SIZE:  # Adjust the collision radius based on the sizes of the boid and obstacle
+                avoidance = boid.position - obstacle.rect.center
+                avoidance = avoidance.normalize() * BOID_FORCE
+                boid.velocity += avoidance
+                print('COLLIDED')
 
         if total > 0:
             alignment /= total
@@ -93,9 +103,23 @@ class Boid(pygame.sprite.Sprite):
         elif self.position.y > HEIGHT:
             self.position.y = 0
 
+class Obstacle(pygame.sprite.Sprite):
+    def __init__(self, position, size):
+        super().__init__()
+        self.image = pygame.Surface(size)  # Adjust the size based on the obstacle's shape
+        self.image.fill(GREEN)
+        self.rect = self.image.get_rect()
+        self.rect.center = position
+
 def run_flock(num_boids=100):
     NUM_BOIDS = num_boids
     
+    # Create the objects
+    obstacles = pygame.sprite.Group()
+    obstacle1 = Obstacle((200, 300), [OBSTACLE_SIZE, OBSTACLE_SIZE])  # Example obstacle with position (200, 300) and size (100, 100)
+    obstacle2 = Obstacle((500, 400), (OBSTACLE_SIZE, OBSTACLE_SIZE))  # Example obstacle with position (500, 400) and size (80, 120)
+    obstacles.add(obstacle1, obstacle2)
+
     boids = pygame.sprite.Group()
     for _ in range(NUM_BOIDS):
         boid = Boid()
@@ -117,11 +141,12 @@ def run_flock(num_boids=100):
                 running = False
 
         # Update boids
-        boids.update(boids)
+        boids.update(boids, obstacles)
 
         # Rendering
         screen.fill(BLACK)
         boids.draw(screen)
+        obstacles.draw(screen)
         pygame.display.flip()
 
     pygame.quit()
@@ -153,4 +178,4 @@ if __name__=='__main__':
             print('Thank you!')
             exit()
         else:
-            print('Invalid option. Please enter a number between 1 and 4.')
+            print('Invalid option. Please enter a number between 1 and 3.')
