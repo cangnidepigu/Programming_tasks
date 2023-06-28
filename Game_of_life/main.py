@@ -1,4 +1,5 @@
 from board import Board
+import time
 
 def main():
     user_rows = int(input('How many rows? '))
@@ -8,16 +9,11 @@ def main():
 
     game_of_life_board.draw_board()
 
-    user_action = ''
-    while user_action != 'q':
-        user_action = input('Press enten to add generation or q to quit: ')
-
-        if user_action == '':
-            game_of_life_board.update_board()
-            game_of_life_board.draw_board()
+    while True:
+        time.sleep(1 / 10)
+        game_of_life_board.update_board()
+        game_of_life_board.draw_board()
 
 
 if __name__ == '__main__':
     main()
-
-# https://betterprogramming.pub/how-to-write-conwells-game-of-life-in-python-c6eca19c4676

@@ -130,9 +130,9 @@ def draw_custom_fractal():
     game_loop(screen, clock)
 
 menu_options = {
-    1: 'Option 1',
-    2: 'Option 2',
-    3: 'Option 3',
+    1: 'Barnsley Fern',
+    2: 'Mandelbrot',
+    3: 'Custom',
     4: 'Exit',
 }
 

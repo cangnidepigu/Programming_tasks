@@ -1,145 +1,156 @@
 import pygame
 import random
-from pygame.math import Vector2
+from pygame.locals import *
 
-# Initialize Pygame
+# Initialize pygame
 pygame.init()
 
 # Window dimensions
-width = 800
-height = 600
+WIDTH = 800
+HEIGHT = 600
 
-# Colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
+GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
 # Flocking parameters
-num_boids = 100
-neighborhood_radius = 300
-desired_separation = 25
-alignment_factor = 0.8
-cohesion_factor = 0.12
-separation_factor = 1.5
-vector_color = (0, 255, 0)
-vector_scale = 20
+NUM_BOIDS = 100
+BOID_SIZE = 10
+BOID_SPEED = 2
+BOID_FORCE = 0.05
+BOID_ALIGNMENT_RADIUS = 50
+BOID_COHESION_RADIUS = 50
+BOID_SEPARATION_RADIUS = 25
 
-# Boid class
 class Boid(pygame.sprite.Sprite):
-    def __init__(self, position, velocity):
+    def __init__(self):
         super().__init__()
-        self.image = pygame.Surface((10, 10))
+        self.image = pygame.Surface([BOID_SIZE, BOID_SIZE])
         self.image.fill(RED)
-        self.rect = self.image.get_rect(center=position)
-        self.position = Vector2(position)
-        self.velocity = Vector2(velocity)
+        self.rect = self.image.get_rect()
+        self.velocity = pygame.Vector2(random.uniform(-1, 1), random.uniform(-1, 1)).normalize()
+        self.position = pygame.Vector2(random.randint(0, WIDTH), random.randint(0, HEIGHT))
 
-    def update(self, flock, obstacles):
-        # Apply flocking rules
-        separation = Vector2(1, 0)
-        alignment = Vector2(1, 0)
-        cohesion = Vector2(1, 0)
-        total_boids = 0
+    def update(self, boids):
+        alignment = pygame.Vector2(0, 0)
+        cohesion = pygame.Vector2(0, 0)
+        separation = pygame.Vector2(0, 0)
+        total = 0
 
-        for boid in flock:
-            distance = self.position.distance_to(boid.position)
-            if distance < neighborhood_radius and distance > 0:
-                separation += (self.position - boid.position) / distance**2
-                alignment += boid.velocity
-                cohesion += boid.position
-                total_boids += 1
+        
 
-        if total_boids > 0:
-            separation /= total_boids
-            alignment /= total_boids
-            cohesion /= total_boids
+        for boid in boids:
+            if boid != self:
+                distance = self.position.distance_to(boid.position)
 
-        # Apply the three flocking rules
-        separation.normalize_ip()
-        separation *= separation_factor
-        alignment.normalize_ip()
-        alignment *= alignment_factor
-        cohesion = (cohesion - self.position).normalize() * cohesion_factor
+                if distance < BOID_ALIGNMENT_RADIUS:
+                    alignment += boid.velocity
+                    total += 1
 
-        # Update velocity and position
-        self.velocity += separation + alignment + cohesion
-        self.velocity.scale_to_length(5)  # Limit the speed
+                if distance < BOID_COHESION_RADIUS:
+                    cohesion += boid.position
+                    total += 1
+
+                if distance < BOID_SEPARATION_RADIUS:
+                    diff = self.position - boid.position
+                    diff /= distance
+                    separation += diff
+                    total += 1
+
+        if total > 0:
+            alignment /= total
+            if alignment.length() > 0:
+                alignment = alignment.normalize() * BOID_SPEED
+
+            cohesion /= total
+            cohesion_direction = (cohesion - self.position).normalize() * BOID_SPEED
+
+            separation /= total
+            if separation.length() > 0:
+                separation = separation.normalize() * BOID_SPEED    
+
+        cohesion_direction = pygame.Vector2(0, 0)
+
+        self.velocity += alignment + cohesion_direction + separation
+        self.velocity = self.velocity.normalize() * BOID_SPEED
+
+        self.velocity += alignment + cohesion_direction + separation
+        self.velocity = self.velocity.normalize() * BOID_SPEED
+
         self.position += self.velocity
-
-        # Avoid obstacles
-        avoidance = Vector2(1, 0)
-        for obstacle in obstacles:
-            distance = self.position.distance_to(obstacle.position)
-            if distance < neighborhood_radius and distance > 0:
-                avoidance += (self.position - obstacle.position) / distance**2
-
-        avoidance.normalize_ip()
-        avoidance *= separation_factor
-        self.velocity += avoidance
-
-        # Wrap around the screen edges
-        if self.position.x < 0:
-            self.position.x = width
-        elif self.position.x > width:
-            self.position.x = 0
-        if self.position.y < 0:
-            self.position.y = height
-        elif self.position.y > height:
-            self.position.y = 0
-
         self.rect.center = self.position
 
-    def draw_vector(self, screen):
-        vector_end = self.position + self.velocity.normalize() * vector_scale
-        pygame.draw.line(screen, vector_color, self.position, vector_end)
+        # Wrap around the screen
+        if self.position.x < 0:
+            self.position.x = WIDTH
+        elif self.position.x > WIDTH:
+            self.position.x = 0
 
-# Obstacle class
-class Obstacle(pygame.sprite.Sprite):
-    def __init__(self, position):
-        super().__init__()
-        self.image = pygame.Surface((20, 20))
-        self.image.fill(BLUE)
-        self.rect = self.image.get_rect(center=position)
-        self.position = Vector2(position)
+        if self.position.y < 0:
+            self.position.y = HEIGHT
+        elif self.position.y > HEIGHT:
+            self.position.y = 0
 
-# Create the flock and obstacles
-flock = pygame.sprite.Group()
-obstacles = pygame.sprite.Group()
-for _ in range(num_boids):
-    position = (random.randint(0, width), random.randint(0, height))
-    velocity = (random.uniform(-1, 1), random.uniform(-1, 1))
-    boid = Boid(position, velocity)
-    flock.add(boid)
+def run_flock(num_boids=100):
+    NUM_BOIDS = num_boids
+    
+    boids = pygame.sprite.Group()
+    for _ in range(NUM_BOIDS):
+        boid = Boid()
+        boids.add(boid)
 
-obstacle_position = (width // 2, height // 2)
-obstacle = Obstacle(obstacle_position)
-obstacel2 = Obstacle((width // 3, height // 3))
-obstacles.add(obstacle)
-obstacles.add(obstacel2)
+    # Create the screen
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.display.set_caption("Flock")
 
-# Set up the screen
-screen = pygame.display.set_mode((width, height))
-clock = pygame.time.Clock()
+    # Game loop
+    running = True
+    clock = pygame.time.Clock()
+    while running:
+        clock.tick(60)
 
-# Main game loop
-running = True
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
+        # Event handling
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                running = False
 
-    # Update the flock and obstacles
-    flock.update(flock, obstacles)
+        # Update boids
+        boids.update(boids)
 
-    # Render the scene
-    screen.fill(BLACK)
-    for boid in flock:
-        boid.draw_vector(screen)
-    flock.draw(screen)
-    obstacles.draw(screen)
-    pygame.display.flip()
-    clock.tick(15)
+        # Rendering
+        screen.fill(BLACK)
+        boids.draw(screen)
+        pygame.display.flip()
 
-# Quit the application
-pygame.quit()
+    pygame.quit()
+
+menu_options = {
+    1: 'Default paramters',
+    2: 'Custom parameters',
+    3: 'Exit'
+}
+
+def print_menu():
+    for key in menu_options.keys():
+        print (key, '--', menu_options[key] )
+
+if __name__=='__main__':
+    while(True):
+        print_menu()
+        option = ''
+        try:
+            option = int(input('Enter your choice: '))
+        except:
+            print('Wrong input. Please enter a number ...')
+        if option == 1:
+           run_flock()
+        elif option == 2:
+            num_boids = int(input('Enter number of boids: '))
+            run_flock(num_boids)
+        elif option == 3:
+            print('Thank you!')
+            exit()
+        else:
+            print('Invalid option. Please enter a number between 1 and 4.')
