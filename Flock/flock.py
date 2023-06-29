@@ -46,6 +46,8 @@ class Boid(pygame.sprite.Sprite):
         separation = pygame.Vector2(0, 0)
         total = 0
 
+        cohesion_direction = pygame.Vector2(0, 0)
+
         for boid in boids:
             if boid != self:
                 distance = self.position.distance_to(boid.position)
@@ -66,15 +68,21 @@ class Boid(pygame.sprite.Sprite):
 
         # Calculate influence of objects on boids
         for obstacle in obstacles:
-            distance = boid.position.distance_to(obstacle.rect.center)
+            distance = self.position.distance_to(obstacle.rect.center)
 
             if (
                 distance < BOID_SIZE * 3 + OBSTACLE_SIZE
             ):  # Adjust the collision radius based on the sizes of the boid and obstacle
-                avoidance = boid.position - obstacle.rect.center
+                avoidance = self.position - obstacle.rect.center
                 avoidance = avoidance.normalize() * BOID_FORCE
-                boid.velocity += avoidance
-                print("COLLIDED")
+                self.velocity += avoidance
+
+                # Prevent penetration by adjusting position
+                if distance < BOID_SIZE + OBSTACLE_SIZE:
+                    penetration = BOID_SIZE + OBSTACLE_SIZE - distance
+                    correction = self.position - obstacle.rect.center
+                    correction = correction.normalize() * penetration
+                    self.position += correction
 
         if total > 0:
             alignment /= total
@@ -87,8 +95,6 @@ class Boid(pygame.sprite.Sprite):
             separation /= total
             if separation.length() > 0:
                 separation = separation.normalize() * BOID_SPEED
-
-        cohesion_direction = pygame.Vector2(0, 0)
 
         self.velocity += alignment + cohesion_direction + separation
         self.velocity = self.velocity.normalize() * BOID_SPEED
@@ -167,7 +173,7 @@ def run_flock(num_boids=100):
     pygame.quit()
 
 
-menu_options = {1: "Default paramters", 2: "Custom parameters", 3: "Exit"}
+menu_options = {1: "Default parameters", 2: "Custom parameters", 3: "Exit"}
 
 
 def print_menu():
