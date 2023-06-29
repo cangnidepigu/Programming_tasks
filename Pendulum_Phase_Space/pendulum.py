@@ -1,7 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-default_gravity = 9.807
+GRAVITY = 9.807
+LENGHT = 2
+DAMPING = 0.2
 
 
 def pendulum_phase_space(theta_0, theta_dot_0, g, L, damping=0, time=10, dt=0.01):
@@ -19,18 +21,28 @@ def pendulum_phase_space(theta_0, theta_dot_0, g, L, damping=0, time=10, dt=0.01
     return theta, theta_dot
 
 
+def get_input_value(prompt, default_value):
+    value = input(prompt)
+    if value == "":
+        value = default_value
+    return float(value)
+
+
 def main():
     print("Pendulum Phase Space Simulator")
     print("-------------------------")
-    g = input(
-        f"Enter the value of 'g' (Acceleration due to gravity, leave empty for default gravity: {default_gravity}): "
+    g = get_input_value(
+        f"Enter the value of 'g' (Acceleration due to gravity, leave empty for: {GRAVITY}): ",
+        GRAVITY,
     )
-    if g == "":
-        g = default_gravity
-    g = float(g)
-
-    L = float(input("Enter the value of 'L' (Length of the pendulum): "))
-    damping = float(input("Enter the value of damping (Damping coefficient): "))
+    L = get_input_value(
+        f"Enter the value of 'L' (Length of the pendulum, leave empty for: {LENGHT}): ",
+        LENGHT,
+    )
+    damping = get_input_value(
+        f"Enter the value of damping (Damping coefficient, leave empty for: {DAMPING}): ",
+        DAMPING,
+    )
 
     theta_0 = np.pi / 4  # Initial angular displacement
     theta_dot_0 = 0.0  # Initial angular velocity
