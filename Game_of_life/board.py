@@ -6,24 +6,26 @@ class Board:
         self._rows = rows
         self._columns = colums
         self._grid = [[Cell() for column_cells in range(self._columns)] for row_cells in range(self._rows)]
-
+        self._generation = 0
+        
         self._gererate_board()
 
     def draw_board(self):
         print('\n' * 10)
-        print('printing board')
-        
+
         for row in self._grid:
             for column in row:
                 print(column.get_print_character(), end='')
             print()
-    
+
     def _gererate_board(self):
         for row in self._grid:
-            for column in row:
-                chance_number = randint(0, 2)
-                if chance_number == 1:
-                    column.set_alive()
+            if self._grid.index(row) > len(self._grid) / 2:
+                for column in row:
+                    if row.index(column) > len(row) / 2:
+                        chance_number = randint(0, 2)
+                        if chance_number == 1:
+                            column.set_alive()
 
     def check_neighbour(self, check_row, check_columm):
         search_min = -1
@@ -52,6 +54,7 @@ class Board:
 
     def update_board(self):
         print('updating board')
+        self._generation += 1
 
         goes_alive = []
         gets_killed = []
@@ -81,9 +84,20 @@ class Board:
                     if len(living_neighbours_count) == 3:
                         goes_alive.append(cell_object)
         
+        print(f'Alive: {len(goes_alive)}')
 
         for cell_items in goes_alive:
             cell_items.set_alive()
 
         for cell_items in gets_killed:
             cell_items.set_dead()
+    
+    def count_alive_cells(self):
+        return sum(1 for row in self._grid for column in row if column.is_alive())
+    
+    def get_generation(self):
+        return self._generation
+    
+    def restart(self):
+        self._generation = 0
+        self.draw_board()

@@ -10,10 +10,21 @@ def main():
     game_of_life_board.draw_board()
 
     while True:
-        time.sleep(1 / 10)
+        time.sleep(1 / 5)
         game_of_life_board.update_board()
         game_of_life_board.draw_board()
+        
+        alive_cells = game_of_life_board.count_alive_cells()
+        generation = game_of_life_board.get_generation()
 
+        print(f'Alive cells: {alive_cells}\nGeneration: {generation}')
+
+        if alive_cells == 0:
+            user_input = input('Restart? (y/n): ')
+            if user_input == 'y':
+                game_of_life_board.restart()
+            else:
+                exit()
 
 if __name__ == '__main__':
     main()
