@@ -2,10 +2,8 @@ import pygame
 import random
 from pygame.locals import *
 
-# Initialize pygame
 pygame.init()
 
-# Window dimensions
 WIDTH = 800
 HEIGHT = 600
 
@@ -124,9 +122,7 @@ class Boid(pygame.sprite.Sprite):
 class Obstacle(pygame.sprite.Sprite):
     def __init__(self, position, size):
         super().__init__()
-        self.image = pygame.Surface(
-            size
-        )  # Adjust the size based on the obstacle's shape
+        self.image = pygame.Surface(size)
         self.image.fill(GREEN)
         self.rect = self.image.get_rect()
         self.rect.center = position
@@ -135,14 +131,9 @@ class Obstacle(pygame.sprite.Sprite):
 def run_flock(num_boids=100):
     NUM_BOIDS = num_boids
 
-    # Create the objects
     obstacles = pygame.sprite.Group()
-    obstacle1 = Obstacle(
-        (200, 300), [OBSTACLE_SIZE, OBSTACLE_SIZE]
-    )  # Example obstacle with position (200, 300) and size (100, 100)
-    obstacle2 = Obstacle(
-        (500, 400), (OBSTACLE_SIZE, OBSTACLE_SIZE)
-    )  # Example obstacle with position (500, 400) and size (80, 120)
+    obstacle1 = Obstacle((200, 300), [OBSTACLE_SIZE, OBSTACLE_SIZE])
+    obstacle2 = Obstacle((500, 400), (OBSTACLE_SIZE, OBSTACLE_SIZE))
     obstacles.add(obstacle1, obstacle2)
 
     boids = pygame.sprite.Group()
@@ -165,13 +156,10 @@ def run_flock(num_boids=100):
             if event.type == QUIT:
                 running = False
 
-        # Get the cursor position
         cursor_position = pygame.mouse.get_pos()
 
-        # Update boids
         boids.update(boids, obstacles, cursor_position)
 
-        # Rendering
         screen.fill(BLACK)
         boids.draw(screen)
         obstacles.draw(screen)
