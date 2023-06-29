@@ -1,8 +1,9 @@
+import pygame
 import matplotlib.pyplot as plt
 import numpy as np
 
 
-def barnsley_fern(n_points):
+def generate_barnsley_fern(n_points):
     x, y = 0, 0
     points = [(x, y)]
 
@@ -24,7 +25,7 @@ def barnsley_fern(n_points):
 
 
 def draw_barnsley_fern():
-    points = barnsley_fern(n_points=100000)
+    points = generate_barnsley_fern(n_points=100000)
     x, y = zip(*points)
 
     plt.scatter(x, y, color="green", s=0.2, edgecolor=None)
@@ -42,7 +43,13 @@ def mandelbrot(c, max_iter):
     return max_iter
 
 
-def draw_mandelbrot(width, height, x_min, x_max, y_min, y_max, max_iter):
+def draw_mandelbrot():
+    width = 800
+    height = 800
+    x_min, x_max = -2.5, 1
+    y_min, y_max = -1.5, 1.5
+    max_iter = 500
+
     image = np.zeros((height, width))
 
     for x in range(width):
@@ -60,77 +67,6 @@ def draw_mandelbrot(width, height, x_min, x_max, y_min, y_max, max_iter):
     plt.show()
 
 
-width = 800
-height = 800
-x_min, x_max = -2.5, 1
-y_min, y_max = -1.5, 1.5
-max_iter = 500
-
-
-def custom_fractal(t, length, angle, depth):
-    if depth == 0:
-        t.forward(length)
-    else:
-        custom_fractal(t, length / 3, angle, depth - 1)
-        t.left(angle)
-        custom_fractal(t, length / 3, angle, depth - 1)
-        t.right(2 * angle)
-        custom_fractal(t, length / 3, angle, depth - 1)
-        t.left(angle)
-        custom_fractal(t, length / 3, angle, depth - 1)
-
-
-def custom_fractal(t, length, angle, depth):
-    if depth == 0:
-        t.forward(length)
-    else:
-        t.forward(length / 3)
-        t.left(angle)
-        custom_fractal(t, length / 3, angle, depth - 1)
-        t.right(2 * angle)
-        custom_fractal(t, length / 3, angle, depth - 1)
-        t.left(angle)
-        t.forward(length / 3)
-
-
-import pygame
-
-
-def custom_fractal(x, y, size, depth, screen):
-    if depth <= 0:
-        return
-    else:
-        # Draw a square
-        pygame.draw.rect(screen, (255, 255, 255), (x, y, size, size), 1)
-
-        # Recursively draw smaller fractals in each corner
-        new_size = size / 3
-
-        custom_fractal(x, y, new_size, depth - 1, screen)
-        custom_fractal(x + new_size, y, new_size, depth - 1, screen)
-        custom_fractal(x + 2 * new_size, y, new_size, depth - 1, screen)
-        custom_fractal(x, y + new_size, new_size, depth - 1, screen)
-        custom_fractal(x + 2 * new_size, y + new_size, new_size, depth - 1, screen)
-        custom_fractal(x, y + 2 * new_size, new_size, depth - 1, screen)
-        custom_fractal(x + new_size, y + 2 * new_size, new_size, depth - 1, screen)
-        custom_fractal(x + 2 * new_size, y + 2 * new_size, new_size, depth - 1, screen)
-
-
-def game_loop(screen, clock):
-    running = True
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-
-        screen.fill((0, 0, 0))
-        custom_fractal(100, 100, 600, 5, screen)
-        pygame.display.flip()
-        clock.tick(60)
-
-    pygame.quit()
-
-
 def draw_custom_fractal():
     pygame.init()
     width, height = 800, 800
@@ -138,38 +74,70 @@ def draw_custom_fractal():
     pygame.display.set_caption("Custom Fractal")
     clock = pygame.time.Clock()
 
-    game_loop(screen, clock)
+    def custom_fractal(x, y, size, depth):
+        if depth <= 0:
+            return
+        else:
+            pygame.draw.rect(screen, (255, 255, 255), (x, y, size, size), 1)
 
+            # Recursively draw smaller fractals in each corner
+            new_size = size / 3
 
-menu_options = {
-    1: "Barnsley Fern",
-    2: "Mandelbrot",
-    3: "Custom",
-    4: "Exit",
-}
+            custom_fractal(x, y, new_size, depth - 1)
+            custom_fractal(x + new_size, y, new_size, depth - 1)
+            custom_fractal(x + 2 * new_size, y, new_size, depth - 1)
+            custom_fractal(x, y + new_size, new_size, depth - 1)
+            custom_fractal(x + 2 * new_size, y + new_size, new_size, depth - 1)
+            custom_fractal(x, y + 2 * new_size, new_size, depth - 1)
+            custom_fractal(x + new_size, y + 2 * new_size, new_size, depth - 1)
+            custom_fractal(x + 2 * new_size, y + 2 * new_size, new_size, depth - 1)
+
+    def game_loop():
+        running = True
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+
+            screen.fill((0, 0, 0))
+            custom_fractal(100, 100, 600, 5)
+            pygame.display.flip()
+            clock.tick(60)
+
+        pygame.quit()
+
+    game_loop()
 
 
 def print_menu():
-    for key in menu_options.keys():
-        print(key, "--", menu_options[key])
+    for key, value in menu_options.items():
+        print(key, "--", value)
 
 
 if __name__ == "__main__":
+    menu_options = {
+        1: "Barnsley Fern",
+        2: "Mandelbrot",
+        3: "Custom",
+        4: "Exit",
+    }
+
     while True:
         print_menu()
-        option = ""
         try:
             option = int(input("Enter your choice: "))
-        except:
-            print("Wrong input. Please enter a number ...")
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+            continue
+
         if option == 1:
             draw_barnsley_fern()
         elif option == 2:
-            draw_mandelbrot(width, height, x_min, x_max, y_min, y_max, max_iter)
+            draw_mandelbrot()
         elif option == 3:
             draw_custom_fractal()
         elif option == 4:
             print("Thank you!")
-            exit()
+            break
         else:
             print("Invalid option. Please enter a number between 1 and 4.")
