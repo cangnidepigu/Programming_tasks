@@ -40,7 +40,7 @@ class Boid(pygame.sprite.Sprite):
             random.randint(0, WIDTH), random.randint(0, HEIGHT)
         )
 
-    def update(self, boids, obstacles):
+    def update(self, boids, obstacles, cursor_position):
         alignment = pygame.Vector2(0, 0)
         cohesion = pygame.Vector2(0, 0)
         separation = pygame.Vector2(0, 0)
@@ -99,7 +99,11 @@ class Boid(pygame.sprite.Sprite):
         self.velocity += alignment + cohesion_direction + separation
         self.velocity = self.velocity.normalize() * BOID_SPEED
 
-        self.velocity += alignment + cohesion_direction + separation
+        # Calculate direction to cursor
+        cursor_direction = cursor_position - self.position
+        cursor_direction = cursor_direction.normalize() * BOID_SPEED
+
+        self.velocity += cursor_direction
         self.velocity = self.velocity.normalize() * BOID_SPEED
 
         self.position += self.velocity
@@ -161,8 +165,11 @@ def run_flock(num_boids=100):
             if event.type == QUIT:
                 running = False
 
+        # Get the cursor position
+        cursor_position = pygame.mouse.get_pos()
+
         # Update boids
-        boids.update(boids, obstacles)
+        boids.update(boids, obstacles, cursor_position)
 
         # Rendering
         screen.fill(BLACK)
@@ -173,7 +180,7 @@ def run_flock(num_boids=100):
     pygame.quit()
 
 
-menu_options = {1: "Default parameters", 2: "Custom parameters", 3: "Exit"}
+menu_options = {1: "Default parameters", 2: "Custom number of boids", 3: "Exit"}
 
 
 def print_menu():
