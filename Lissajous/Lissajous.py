@@ -6,13 +6,11 @@ height = 600
 
 
 def draw_point(a, b, delta, time, screen, clock, line_surface):
-    screen.fill((255, 255, 255))
-
     # Calculate the current position on the Lissajous curve
     x = width / 2 + (width / 2 - 50) * math.sin(a * time)
     y = height / 2 + (height / 2 - 50) * math.sin(b * time + delta)
 
-    pygame.draw.line(line_surface, (255, 255, 255), (int(x), int(y)), (int(x), int(y)))
+    pygame.draw.circle(line_surface, (255, 255, 255), (int(x), int(y)), 2)
 
     screen.blit(line_surface, (0, 0))
 
